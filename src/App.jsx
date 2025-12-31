@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from './supabase/config'
 import { useAuth } from './contexts/AuthContext'
 import BookmarkForm from './components/BookmarkForm'
 import BookmarkGrid from './components/BookmarkGrid'
+import SearchBar from './components/SearchBar'
 import Login from './components/Login'
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const [bookmarks, setBookmarks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTags, setSelectedTags] = useState([])
 
   // Load bookmarks from Supabase when user is authenticated
   useEffect(() => {
@@ -61,6 +64,41 @@ function App() {
     }
   }
 
+  // Get all unique tags from bookmarks
+  const allTags = useMemo(() => {
+    const tags = new Set()
+    bookmarks.forEach(bookmark => {
+      if (bookmark.tags && Array.isArray(bookmark.tags)) {
+        bookmark.tags.forEach(tag => tags.add(tag))
+      }
+    })
+    return Array.from(tags).sort()
+  }, [bookmarks])
+
+  // Filter bookmarks based on search query and selected tags
+  const filteredBookmarks = useMemo(() => {
+    let filtered = bookmarks
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(bookmark =>
+        bookmark.title.toLowerCase().includes(query) ||
+        bookmark.url.toLowerCase().includes(query)
+      )
+    }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(bookmark =>
+        bookmark.tags &&
+        selectedTags.every(tag => bookmark.tags.includes(tag))
+      )
+    }
+
+    return filtered
+  }, [bookmarks, searchQuery, selectedTags])
+
   const handleAddBookmark = async (bookmarkData) => {
     if (!user) return
 
@@ -109,6 +147,17 @@ function App() {
       await signOut()
     } catch (error) {
       console.error('Error signing out:', error)
+    }
+  }
+
+  const handleTagToggle = (tag) => {
+    if (tag === null) {
+      // Clear all filters
+      setSelectedTags([])
+    } else if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag))
+    } else {
+      setSelectedTags([...selectedTags, tag])
     }
   }
 
@@ -181,12 +230,31 @@ function App() {
             </div>
           </div>
 
-          {/* Right Column - Bookmarks Grid */}
-          <div className="lg:col-span-2">
+          {/* Right Column - Search & Bookmarks Grid */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Search and Filter */}
             <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                My Bookmarks ({bookmarks.length})
-              </h2>
+              <SearchBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                allTags={allTags}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+              />
+            </div>
+
+            {/* Bookmarks Grid */}
+            <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">
+                  {searchQuery || selectedTags.length > 0 ? 'Filtered Bookmarks' : 'My Bookmarks'} ({filteredBookmarks.length})
+                </h2>
+                {(searchQuery || selectedTags.length > 0) && filteredBookmarks.length !== bookmarks.length && (
+                  <p className="text-sm text-slate-400">
+                    {filteredBookmarks.length} of {bookmarks.length} bookmarks
+                  </p>
+                )}
+              </div>
               {loading ? (
                 <div className="text-center py-12">
                   <svg className="animate-spin h-8 w-8 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24">
@@ -197,7 +265,7 @@ function App() {
                 </div>
               ) : (
                 <BookmarkGrid
-                  bookmarks={bookmarks}
+                  bookmarks={filteredBookmarks}
                   onDeleteBookmark={handleDeleteBookmark}
                 />
               )}
