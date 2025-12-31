@@ -14,7 +14,7 @@ A modern, full-stack bookmark management application with real-time synchronizat
 - ✏️ **Full CRUD Operations** - Create, read, update, and delete bookmarks
 - 🔍 **Advanced Search** - Search bookmarks by title or URL
 - 🏷️ **Tag System** - Organize with tags and filter by multiple tags
-- 🌐 **Smart Metadata** - Auto-fetch page titles and favicons from URLs
+- 🎨 **Favicons** - Automatic favicon display for visual identification
 - 📤 **Import/Export** - Import browser bookmarks (HTML) and export to any browser
 - 🧩 **Browser Extension** - Save bookmarks from any webpage with one click
 - 🌙 **Dark Mode** - Modern dark UI optimized for extended use
@@ -152,9 +152,9 @@ Add your Vercel URL to Supabase:
 
 ### Adding a Bookmark (Web App)
 1. Sign in with your email (you'll receive a magic link)
-2. Paste a URL - the title and favicon are **automatically fetched**
+2. Enter the URL and title
 3. Add optional tags (comma-separated)
-4. Click "Add Bookmark"
+4. Click "Add Bookmark" - favicon is automatically added
 
 ### Adding a Bookmark (Browser Extension)
 1. Install the extension from `extension/` folder (see [extension/README.md](extension/README.md))
@@ -212,7 +212,7 @@ bookmark-manager/
 │   ├── supabase/
 │   │   └── config.js             # Supabase client configuration
 │   ├── utils/
-│   │   ├── metadata.js           # URL metadata fetching utilities
+│   │   ├── metadata.js           # Favicon URL generation
 │   │   └── bookmarkIO.js         # Import/export utilities
 │   ├── App.jsx                   # Main application component
 │   ├── main.jsx                  # Application entry point
