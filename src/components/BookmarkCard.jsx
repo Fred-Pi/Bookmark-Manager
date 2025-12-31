@@ -11,11 +11,32 @@ function BookmarkCard({ bookmark, onDelete }) {
 
   return (
     <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 hover:bg-slate-700 hover:border-slate-500 transition-all">
-      {/* Header with title and delete button */}
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-slate-100 text-lg flex-1 pr-2">
+      {/* Header with favicon, title and delete button */}
+      <div className="flex items-start gap-3 mb-2">
+        {/* Favicon */}
+        {bookmark.favicon ? (
+          <img
+            src={bookmark.favicon}
+            alt=""
+            className="w-6 h-6 mt-0.5 rounded flex-shrink-0"
+            onError={(e) => {
+              e.target.style.display = 'none'
+            }}
+          />
+        ) : (
+          <div className="w-6 h-6 mt-0.5 bg-slate-600 rounded flex-shrink-0 flex items-center justify-center">
+            <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+        )}
+
+        {/* Title */}
+        <h3 className="font-semibold text-slate-100 text-lg flex-1">
           {bookmark.title}
         </h3>
+
+        {/* Delete button */}
         <button
           onClick={() => onDelete(bookmark.id)}
           className="text-slate-400 hover:text-red-400 transition-colors flex-shrink-0"
@@ -32,14 +53,14 @@ function BookmarkCard({ bookmark, onDelete }) {
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-400 hover:text-blue-300 text-sm mb-3 block truncate"
+        className="text-blue-400 hover:text-blue-300 text-sm mb-3 block truncate ml-9"
       >
         {getDomain(bookmark.url)}
       </a>
 
       {/* Tags */}
       {bookmark.tags && bookmark.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 ml-9">
           {bookmark.tags.map((tag, index) => (
             <span
               key={index}
@@ -53,7 +74,7 @@ function BookmarkCard({ bookmark, onDelete }) {
 
       {/* Created date (optional, subtle) */}
       {bookmark.created_at && (
-        <p className="text-xs text-slate-500 mt-3">
+        <p className="text-xs text-slate-500 mt-3 ml-9">
           Added {new Date(bookmark.created_at).toLocaleDateString()}
         </p>
       )}

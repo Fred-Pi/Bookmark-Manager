@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save Bookmark</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <svg class="logo" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+      </svg>
+      <h1>Save Bookmark</h1>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="status" class="status hidden"></div>
+
+    <!-- Configuration (shown first time) -->
+    <div id="config-section" class="section hidden">
+      <h2>Setup Required</h2>
+      <p class="help-text">Enter your Supabase credentials to get started:</p>
+
+      <div class="form-group">
+        <label for="supabase-url">Supabase URL</label>
+        <input type="url" id="supabase-url" placeholder="https://xxx.supabase.co" required>
+      </div>
+
+      <div class="form-group">
+        <label for="supabase-key">Supabase Anon Key</label>
+        <input type="text" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIs..." required>
+      </div>
+
+      <button id="save-config" class="btn btn-primary">Save Configuration</button>
+    </div>
+
+    <!-- Login (if not authenticated) -->
+    <div id="login-section" class="section hidden">
+      <h2>Sign In</h2>
+      <p class="help-text">Sign in to save bookmarks:</p>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required>
+      </div>
+
+      <button id="send-magic-link" class="btn btn-primary">Send Magic Link</button>
+      <p class="help-text">Check your email for the sign-in link</p>
+    </div>
+
+    <!-- Save Bookmark Form (when authenticated) -->
+    <div id="save-section" class="section hidden">
+      <form id="bookmark-form">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" placeholder="Page title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="url">URL</label>
+          <input type="url" id="url" placeholder="https://example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Tags (comma-separated)</label>
+          <input type="text" id="tags" placeholder="react, tutorial, web-dev">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="save-btn">
+          Save Bookmark
+        </button>
+      </form>
+
+      <button id="sign-out-btn" class="btn btn-secondary">Sign Out</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <a href="#" id="open-app">Open Bookmark Manager</a>
+    </div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

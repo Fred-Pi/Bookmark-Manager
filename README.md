@@ -13,6 +13,8 @@ A modern, full-stack bookmark management application with real-time synchronizat
 - ☁️ **Real-Time Sync** - Changes instantly sync across all devices
 - 🔍 **Advanced Search** - Search bookmarks by title or URL
 - 🏷️ **Tag System** - Organize with tags and filter by multiple tags
+- 🌐 **Smart Metadata** - Auto-fetch page titles and favicons from URLs
+- 🧩 **Browser Extension** - Save bookmarks from any webpage with one click
 - 🌙 **Dark Mode** - Modern dark UI optimized for extended use
 - 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - ⚡ **Fast & Lightweight** - Built with Vite for optimal performance
@@ -78,6 +80,7 @@ create table public.bookmarks (
   url text not null,
   title text not null,
   tags text[] default '{}',
+  favicon text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -145,10 +148,17 @@ Add your Vercel URL to Supabase:
 
 ## 📖 Usage
 
-### Adding a Bookmark
+### Adding a Bookmark (Web App)
 1. Sign in with your email (you'll receive a magic link)
-2. Fill in the URL, title, and optional tags
-3. Click "Add Bookmark"
+2. Paste a URL - the title and favicon are **automatically fetched**
+3. Add optional tags (comma-separated)
+4. Click "Add Bookmark"
+
+### Adding a Bookmark (Browser Extension)
+1. Install the extension from `extension/` folder (see [extension/README.md](extension/README.md))
+2. Navigate to any webpage
+3. Click the extension icon
+4. Click "Save Bookmark" (title and URL are pre-filled!)
 
 ### Searching
 - Use the search bar to filter by title or URL
@@ -170,7 +180,7 @@ bookmark-manager/
 ├── src/
 │   ├── components/
 │   │   ├── BookmarkCard.jsx      # Individual bookmark display
-│   │   ├── BookmarkForm.jsx      # Add bookmark form
+│   │   ├── BookmarkForm.jsx      # Add bookmark form (with metadata fetching)
 │   │   ├── BookmarkGrid.jsx      # Grid layout for bookmarks
 │   │   ├── Login.jsx             # Authentication UI
 │   │   └── SearchBar.jsx         # Search and filter controls
@@ -178,11 +188,20 @@ bookmark-manager/
 │   │   └── AuthContext.jsx       # Authentication state management
 │   ├── supabase/
 │   │   └── config.js             # Supabase client configuration
+│   ├── utils/
+│   │   └── metadata.js           # URL metadata fetching utilities
 │   ├── App.jsx                   # Main application component
 │   ├── main.jsx                  # Application entry point
 │   └── index.css                 # Global styles and Tailwind imports
+├── extension/                    # Browser extension
+│   ├── manifest.json             # Extension configuration
+│   ├── popup.html                # Extension popup UI
+│   ├── popup.css                 # Extension styles
+│   ├── popup.js                  # Extension logic
+│   └── README.md                 # Extension installation guide
 ├── public/                       # Static assets
 ├── .env.example                  # Environment variable template
+├── supabase-migration-favicon.sql # Database migration for favicon support
 ├── .gitignore
 ├── package.json
 ├── tailwind.config.js            # Tailwind configuration

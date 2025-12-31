@@ -110,7 +110,8 @@ function App() {
             user_id: user.id,
             url: bookmarkData.url,
             title: bookmarkData.title,
-            tags: bookmarkData.tags
+            tags: bookmarkData.tags,
+            favicon: bookmarkData.favicon
           }
         ])
 
