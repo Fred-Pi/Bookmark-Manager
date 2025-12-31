@@ -9,11 +9,6 @@ function BookmarkForm({ onAddBookmark }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    if (!url.trim() || !title.trim()) {
-      alert('Please fill in both URL and title')
-      return
-    }
-
     const newBookmark = {
       url: url.trim(),
       title: title.trim(),

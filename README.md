@@ -15,8 +15,11 @@ A modern, full-stack bookmark management application with real-time synchronizat
 - 🔍 **Advanced Search** - Search bookmarks by title or URL
 - 🏷️ **Tag System** - Organize with tags and filter by multiple tags
 - 🎨 **Favicons** - Automatic favicon display for visual identification
-- 📤 **Import/Export** - Import browser bookmarks (HTML) and export to any browser
+- 🔁 **Smart Sorting** - Sort by newest, oldest, or alphabetically by title
+- 🚫 **Duplicate Detection** - Prevents adding the same URL twice
+- 📤 **Import/Export** - Import browser bookmarks (HTML) and export to any browser with duplicate filtering
 - 🧩 **Browser Extension** - Save bookmarks from any webpage with one click
+- 💬 **Toast Notifications** - Clean, non-intrusive feedback for all actions
 - 🌙 **Dark Mode** - Modern dark UI optimized for extended use
 - 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - ⚡ **Fast & Lightweight** - Built with Vite for optimal performance
@@ -176,6 +179,13 @@ Add your Vercel URL to Supabase:
 - Select multiple tags to narrow results (AND logic)
 - Click "Clear filters" to reset
 
+### Sorting Bookmarks
+- Use the sort dropdown to organize bookmarks
+- **Newest First** - Most recently added (default)
+- **Oldest First** - Oldest bookmarks first
+- **Title (A-Z)** - Alphabetical ascending
+- **Title (Z-A)** - Alphabetical descending
+
 ### Importing Bookmarks
 1. Export bookmarks from your browser:
    - **Chrome/Edge:** Settings → Bookmarks → Bookmark Manager → ⋮ → Export bookmarks
@@ -208,7 +218,8 @@ bookmark-manager/
 │   │   ├── Login.jsx             # Authentication UI
 │   │   └── SearchBar.jsx         # Search and filter controls
 │   ├── contexts/
-│   │   └── AuthContext.jsx       # Authentication state management
+│   │   ├── AuthContext.jsx       # Authentication state management
+│   │   └── ToastContext.jsx      # Toast notification system
 │   ├── supabase/
 │   │   └── config.js             # Supabase client configuration
 │   ├── utils/

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from './supabase/config'
 import { useAuth } from './contexts/AuthContext'
+import { useToast } from './contexts/ToastContext'
 import BookmarkForm from './components/BookmarkForm'
 import BookmarkGrid from './components/BookmarkGrid'
 import SearchBar from './components/SearchBar'
@@ -10,12 +11,14 @@ import { downloadBookmarksHTML, parseBookmarksHTML } from './utils/bookmarkIO'
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth()
+  const { showSuccess, showError, showInfo } = useToast()
   const [bookmarks, setBookmarks] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
   const [editingBookmark, setEditingBookmark] = useState(null)
   const [isImporting, setIsImporting] = useState(false)
+  const [sortBy, setSortBy] = useState('newest') // newest, oldest, title-asc, title-desc
   const fileInputRef = useRef(null)
 
   // Load bookmarks from Supabase when user is authenticated
@@ -80,7 +83,7 @@ function App() {
     return Array.from(tags).sort()
   }, [bookmarks])
 
-  // Filter bookmarks based on search query and selected tags
+  // Filter and sort bookmarks
   const filteredBookmarks = useMemo(() => {
     let filtered = bookmarks
 
@@ -101,13 +104,35 @@ function App() {
       )
     }
 
-    return filtered
-  }, [bookmarks, searchQuery, selectedTags])
+    // Sort bookmarks
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest':
+          return new Date(a.created_at) - new Date(b.created_at)
+        case 'title-asc':
+          return a.title.localeCompare(b.title)
+        case 'title-desc':
+          return b.title.localeCompare(a.title)
+        case 'newest':
+        default:
+          return new Date(b.created_at) - new Date(a.created_at)
+      }
+    })
+
+    return sorted
+  }, [bookmarks, searchQuery, selectedTags, sortBy])
 
   const handleAddBookmark = async (bookmarkData) => {
     if (!user) return
 
     try {
+      // Check for duplicate URL
+      const duplicate = bookmarks.find(b => b.url === bookmarkData.url)
+      if (duplicate) {
+        showError(`This URL is already bookmarked as "${duplicate.title}"`)
+        return
+      }
+
       const { error } = await supabase
         .from('bookmarks')
         .insert([
@@ -121,10 +146,11 @@ function App() {
         ])
 
       if (error) throw error
+      showSuccess('Bookmark added successfully!')
       // Real-time subscription will update the UI automatically
     } catch (error) {
       console.error('Error adding bookmark:', error)
-      alert('Failed to add bookmark. Please try again.')
+      showError('Failed to add bookmark. Please try again.')
     }
   }
 
@@ -140,10 +166,11 @@ function App() {
           .eq('user_id', user.id) // Security: ensure user owns the bookmark
 
         if (error) throw error
+        showSuccess('Bookmark deleted')
         // Real-time subscription will update the UI automatically
       } catch (error) {
         console.error('Error deleting bookmark:', error)
-        alert('Failed to delete bookmark. Please try again.')
+        showError('Failed to delete bookmark. Please try again.')
       }
     }
   }
@@ -163,10 +190,11 @@ function App() {
         .eq('user_id', user.id) // Security: ensure user owns the bookmark
 
       if (error) throw error
+      showSuccess('Bookmark updated successfully!')
       // Real-time subscription will update the UI automatically
     } catch (error) {
       console.error('Error updating bookmark:', error)
-      alert('Failed to update bookmark. Please try again.')
+      showError('Failed to update bookmark. Please try again.')
     }
   }
 
@@ -191,15 +219,16 @@ function App() {
 
   const handleExportBookmarks = () => {
     if (bookmarks.length === 0) {
-      alert('No bookmarks to export')
+      showInfo('No bookmarks to export')
       return
     }
 
     try {
       downloadBookmarksHTML(bookmarks)
+      showSuccess(`Exported ${bookmarks.length} bookmarks`)
     } catch (error) {
       console.error('Error exporting bookmarks:', error)
-      alert('Failed to export bookmarks. Please try again.')
+      showError('Failed to export bookmarks. Please try again.')
     }
   }
 
@@ -217,7 +246,8 @@ function App() {
       const parsedBookmarks = await parseBookmarksHTML(file)
 
       if (parsedBookmarks.length === 0) {
-        alert('No bookmarks found in the file')
+        showInfo('No bookmarks found in the file')
+        setIsImporting(false)
         return
       }
 
@@ -226,10 +256,24 @@ function App() {
         `Found ${parsedBookmarks.length} bookmarks. Do you want to import them? This will add them to your existing bookmarks.`
       )
 
-      if (!confirmed) return
+      if (!confirmed) {
+        setIsImporting(false)
+        return
+      }
+
+      // Filter out duplicates
+      const existingUrls = new Set(bookmarks.map(b => b.url))
+      const newBookmarks = parsedBookmarks.filter(b => !existingUrls.has(b.url))
+      const duplicateCount = parsedBookmarks.length - newBookmarks.length
+
+      if (newBookmarks.length === 0) {
+        showInfo('All bookmarks already exist')
+        setIsImporting(false)
+        return
+      }
 
       // Bulk insert with favicon fetching
-      const bookmarksToInsert = parsedBookmarks.map(bookmark => ({
+      const bookmarksToInsert = newBookmarks.map(bookmark => ({
         user_id: user.id,
         url: bookmark.url,
         title: bookmark.title,
@@ -243,11 +287,15 @@ function App() {
 
       if (error) throw error
 
-      alert(`Successfully imported ${parsedBookmarks.length} bookmarks!`)
+      if (duplicateCount > 0) {
+        showSuccess(`Imported ${newBookmarks.length} bookmarks (${duplicateCount} duplicates skipped)`)
+      } else {
+        showSuccess(`Successfully imported ${newBookmarks.length} bookmarks!`)
+      }
       // Real-time subscription will update the UI automatically
     } catch (error) {
       console.error('Error importing bookmarks:', error)
-      alert('Failed to import bookmarks. Please check the file format and try again.')
+      showError('Failed to import bookmarks. Please check the file format and try again.')
     } finally {
       setIsImporting(false)
       // Reset file input
@@ -353,8 +401,22 @@ function App() {
                   )}
                 </div>
 
-                {/* Import/Export Buttons */}
-                <div className="flex gap-2">
+                {/* Sort and Import/Export Controls */}
+                <div className="flex gap-2 flex-wrap">
+                  {/* Sort Dropdown */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-2 text-sm font-medium text-slate-200 bg-slate-700 border border-slate-600 hover:bg-slate-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Sort bookmarks"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="title-desc">Title (Z-A)</option>
+                  </select>
+
+                  {/* Import Button */}
                   <button
                     onClick={handleImportClick}
                     disabled={isImporting}
@@ -366,6 +428,8 @@ function App() {
                     </svg>
                     {isImporting ? 'Importing...' : 'Import'}
                   </button>
+
+                  {/* Export Button */}
                   <button
                     onClick={handleExportBookmarks}
                     disabled={bookmarks.length === 0}

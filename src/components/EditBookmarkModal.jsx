@@ -17,11 +17,6 @@ function EditBookmarkModal({ bookmark, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!url.trim() || !title.trim()) {
-      alert('URL and title are required')
-      return
-    }
-
     setIsSaving(true)
 
     const updatedBookmark = {
