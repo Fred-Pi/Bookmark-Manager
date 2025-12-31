@@ -342,9 +342,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👤 Author
 
-**Federico Pisani**
+**Fred-Pi**
 - GitHub: [@Fred-Pi](https://github.com/Fred-Pi)
-- Email: mail.fpisani@gmail.com
 
 ## 🙏 Acknowledgments
 
