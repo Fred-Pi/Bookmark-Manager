@@ -31,6 +31,24 @@ A modern, full-stack bookmark management application with real-time synchronizat
 
 **Test Account:** Use any email to receive a magic link
 
+## 📸 Screenshots
+
+### Main Dashboard
+![Main Dashboard](screenshots/dashboard.png)
+*Bookmark grid with search, filters, and sorting options*
+
+### Add & Edit Bookmarks
+![Add Bookmark](screenshots/add-bookmark.png)
+*Clean form with automatic favicon fetching*
+
+### Toast Notifications
+![Toast Notifications](screenshots/toast-notification.png)
+*Non-intrusive feedback for all actions*
+
+### Browser Extension
+![Browser Extension](screenshots/extension.png)
+*One-click bookmark saving from any webpage*
+
 ## 💼 Portfolio Highlights
 
 This project demonstrates:
