@@ -1,6 +1,6 @@
 import BookmarkCard from './BookmarkCard'
 
-function BookmarkGrid({ bookmarks, onDeleteBookmark }) {
+function BookmarkGrid({ bookmarks, onDeleteBookmark, onEditBookmark }) {
   if (bookmarks.length === 0) {
     return (
       <div className="text-center py-12">
@@ -30,6 +30,7 @@ function BookmarkGrid({ bookmarks, onDeleteBookmark }) {
           key={bookmark.id}
           bookmark={bookmark}
           onDelete={onDeleteBookmark}
+          onEdit={onEditBookmark}
         />
       ))}
     </div>

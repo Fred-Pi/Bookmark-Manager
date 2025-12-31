@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from './supabase/config'
 import { useAuth } from './contexts/AuthContext'
 import BookmarkForm from './components/BookmarkForm'
 import BookmarkGrid from './components/BookmarkGrid'
 import SearchBar from './components/SearchBar'
 import Login from './components/Login'
+import EditBookmarkModal from './components/EditBookmarkModal'
+import { downloadBookmarksHTML, parseBookmarksHTML } from './utils/bookmarkIO'
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -12,6 +14,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [editingBookmark, setEditingBookmark] = useState(null)
+  const [isImporting, setIsImporting] = useState(false)
+  const fileInputRef = useRef(null)
 
   // Load bookmarks from Supabase when user is authenticated
   useEffect(() => {
@@ -143,6 +148,28 @@ function App() {
     }
   }
 
+  const handleUpdateBookmark = async (updatedBookmark) => {
+    if (!user) return
+
+    try {
+      const { error } = await supabase
+        .from('bookmarks')
+        .update({
+          url: updatedBookmark.url,
+          title: updatedBookmark.title,
+          tags: updatedBookmark.tags
+        })
+        .eq('id', updatedBookmark.id)
+        .eq('user_id', user.id) // Security: ensure user owns the bookmark
+
+      if (error) throw error
+      // Real-time subscription will update the UI automatically
+    } catch (error) {
+      console.error('Error updating bookmark:', error)
+      alert('Failed to update bookmark. Please try again.')
+    }
+  }
+
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -159,6 +186,74 @@ function App() {
       setSelectedTags(selectedTags.filter(t => t !== tag))
     } else {
       setSelectedTags([...selectedTags, tag])
+    }
+  }
+
+  const handleExportBookmarks = () => {
+    if (bookmarks.length === 0) {
+      alert('No bookmarks to export')
+      return
+    }
+
+    try {
+      downloadBookmarksHTML(bookmarks)
+    } catch (error) {
+      console.error('Error exporting bookmarks:', error)
+      alert('Failed to export bookmarks. Please try again.')
+    }
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImportBookmarks = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsImporting(true)
+
+    try {
+      const parsedBookmarks = await parseBookmarksHTML(file)
+
+      if (parsedBookmarks.length === 0) {
+        alert('No bookmarks found in the file')
+        return
+      }
+
+      // Confirm import
+      const confirmed = window.confirm(
+        `Found ${parsedBookmarks.length} bookmarks. Do you want to import them? This will add them to your existing bookmarks.`
+      )
+
+      if (!confirmed) return
+
+      // Bulk insert with favicon fetching
+      const bookmarksToInsert = parsedBookmarks.map(bookmark => ({
+        user_id: user.id,
+        url: bookmark.url,
+        title: bookmark.title,
+        tags: bookmark.tags || [],
+        favicon: `https://www.google.com/s2/favicons?domain=${new URL(bookmark.url).hostname}&sz=64`
+      }))
+
+      const { error } = await supabase
+        .from('bookmarks')
+        .insert(bookmarksToInsert)
+
+      if (error) throw error
+
+      alert(`Successfully imported ${parsedBookmarks.length} bookmarks!`)
+      // Real-time subscription will update the UI automatically
+    } catch (error) {
+      console.error('Error importing bookmarks:', error)
+      alert('Failed to import bookmarks. Please check the file format and try again.')
+    } finally {
+      setIsImporting(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
@@ -246,16 +341,54 @@ function App() {
 
             {/* Bookmarks Grid */}
             <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">
-                  {searchQuery || selectedTags.length > 0 ? 'Filtered Bookmarks' : 'My Bookmarks'} ({filteredBookmarks.length})
-                </h2>
-                {(searchQuery || selectedTags.length > 0) && filteredBookmarks.length !== bookmarks.length && (
-                  <p className="text-sm text-slate-400">
-                    {filteredBookmarks.length} of {bookmarks.length} bookmarks
-                  </p>
-                )}
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">
+                    {searchQuery || selectedTags.length > 0 ? 'Filtered Bookmarks' : 'My Bookmarks'} ({filteredBookmarks.length})
+                  </h2>
+                  {(searchQuery || selectedTags.length > 0) && filteredBookmarks.length !== bookmarks.length && (
+                    <p className="text-sm text-slate-400">
+                      {filteredBookmarks.length} of {bookmarks.length} bookmarks
+                    </p>
+                  )}
+                </div>
+
+                {/* Import/Export Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleImportClick}
+                    disabled={isImporting}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-200 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed rounded-lg transition-colors"
+                    title="Import bookmarks from HTML file"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    {isImporting ? 'Importing...' : 'Import'}
+                  </button>
+                  <button
+                    onClick={handleExportBookmarks}
+                    disabled={bookmarks.length === 0}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-200 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed rounded-lg transition-colors"
+                    title="Export bookmarks to HTML file"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    </svg>
+                    Export
+                  </button>
+                </div>
               </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".html"
+                onChange={handleImportBookmarks}
+                className="hidden"
+              />
+
               {loading ? (
                 <div className="text-center py-12">
                   <svg className="animate-spin h-8 w-8 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24">
@@ -268,12 +401,22 @@ function App() {
                 <BookmarkGrid
                   bookmarks={filteredBookmarks}
                   onDeleteBookmark={handleDeleteBookmark}
+                  onEditBookmark={setEditingBookmark}
                 />
               )}
             </div>
           </div>
         </div>
       </main>
+
+      {/* Edit Modal */}
+      {editingBookmark && (
+        <EditBookmarkModal
+          bookmark={editingBookmark}
+          onClose={() => setEditingBookmark(null)}
+          onSave={handleUpdateBookmark}
+        />
+      )}
     </div>
   )
 }

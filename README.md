@@ -11,9 +11,11 @@ A modern, full-stack bookmark management application with real-time synchronizat
 
 - 🔐 **Passwordless Authentication** - Magic link email authentication via Supabase
 - ☁️ **Real-Time Sync** - Changes instantly sync across all devices
+- ✏️ **Full CRUD Operations** - Create, read, update, and delete bookmarks
 - 🔍 **Advanced Search** - Search bookmarks by title or URL
 - 🏷️ **Tag System** - Organize with tags and filter by multiple tags
 - 🌐 **Smart Metadata** - Auto-fetch page titles and favicons from URLs
+- 📤 **Import/Export** - Import browser bookmarks (HTML) and export to any browser
 - 🧩 **Browser Extension** - Save bookmarks from any webpage with one click
 - 🌙 **Dark Mode** - Modern dark UI optimized for extended use
 - 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
@@ -160,6 +162,11 @@ Add your Vercel URL to Supabase:
 3. Click the extension icon
 4. Click "Save Bookmark" (title and URL are pre-filled!)
 
+### Editing Bookmarks
+- Click the edit icon (pencil) on any bookmark
+- Update the URL, title, or tags
+- Click "Save Changes"
+
 ### Searching
 - Use the search bar to filter by title or URL
 - Search is case-insensitive and instant
@@ -168,6 +175,21 @@ Add your Vercel URL to Supabase:
 - Click on any tag to filter bookmarks
 - Select multiple tags to narrow results (AND logic)
 - Click "Clear filters" to reset
+
+### Importing Bookmarks
+1. Export bookmarks from your browser:
+   - **Chrome/Edge:** Settings → Bookmarks → Bookmark Manager → ⋮ → Export bookmarks
+   - **Firefox:** Bookmarks → Manage Bookmarks → Import and Backup → Export Bookmarks to HTML
+2. In the web app, click the **Import** button
+3. Select your exported HTML file
+4. Confirm the import
+
+### Exporting Bookmarks
+1. Click the **Export** button in the web app
+2. Save the HTML file
+3. Import into any browser:
+   - **Chrome/Edge:** Settings → Bookmarks → Bookmark Manager → ⋮ → Import bookmarks
+   - **Firefox:** Bookmarks → Manage Bookmarks → Import and Backup → Import Bookmarks from HTML
 
 ### Deleting Bookmarks
 - Click the trash icon on any bookmark
@@ -182,6 +204,7 @@ bookmark-manager/
 │   │   ├── BookmarkCard.jsx      # Individual bookmark display
 │   │   ├── BookmarkForm.jsx      # Add bookmark form (with metadata fetching)
 │   │   ├── BookmarkGrid.jsx      # Grid layout for bookmarks
+│   │   ├── EditBookmarkModal.jsx # Edit bookmark modal dialog
 │   │   ├── Login.jsx             # Authentication UI
 │   │   └── SearchBar.jsx         # Search and filter controls
 │   ├── contexts/
@@ -189,7 +212,8 @@ bookmark-manager/
 │   ├── supabase/
 │   │   └── config.js             # Supabase client configuration
 │   ├── utils/
-│   │   └── metadata.js           # URL metadata fetching utilities
+│   │   ├── metadata.js           # URL metadata fetching utilities
+│   │   └── bookmarkIO.js         # Import/export utilities
 │   ├── App.jsx                   # Main application component
 │   ├── main.jsx                  # Application entry point
 │   └── index.css                 # Global styles and Tailwind imports
@@ -242,12 +266,15 @@ create policy "Users can view their own bookmarks"
 
 - [ ] Sign in with magic link email
 - [ ] Add a bookmark with tags
-- [ ] Edit tags by deleting and re-adding
+- [ ] Edit a bookmark (change title, URL, or tags)
+- [ ] Delete a bookmark
 - [ ] Search by title
 - [ ] Search by URL
 - [ ] Filter by single tag
 - [ ] Filter by multiple tags
-- [ ] Delete a bookmark
+- [ ] Export bookmarks to HTML
+- [ ] Import bookmarks from browser HTML export
+- [ ] Test browser extension (add bookmark from webpage)
 - [ ] Test on mobile device
 - [ ] Test real-time sync (open in two tabs)
 
