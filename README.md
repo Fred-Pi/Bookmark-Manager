@@ -27,9 +27,22 @@ A modern, full-stack bookmark management application with real-time synchronizat
 
 ## 🚀 Demo
 
-**Live Demo:** [Your Vercel URL here]
+**Live Demo:** [https://bookmark-manager-xi-ochre.vercel.app](https://bookmark-manager-xi-ochre.vercel.app)
 
 **Test Account:** Use any email to receive a magic link
+
+## 💼 Portfolio Highlights
+
+This project demonstrates:
+- **Full-Stack Development** - React frontend with Supabase backend
+- **Real-Time Features** - WebSocket subscriptions for instant sync
+- **Authentication & Security** - Passwordless auth with Row Level Security
+- **State Management** - React Context API with custom hooks
+- **Performance Optimization** - useMemo for expensive operations, lazy loading
+- **UX Design** - Custom toast system, duplicate detection, smart sorting
+- **Browser APIs** - File reading/writing, HTML parsing for import/export
+- **Code Quality** - Clean component architecture, reusable utilities
+- **Production Deployment** - CI/CD with Vercel, environment management
 
 ## 🛠️ Tech Stack
 
